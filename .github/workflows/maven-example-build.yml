@@ -1,10 +1,16 @@
-name: Maven Build with JFrog Fly
+name: Maven Example Build with JFrog Fly
 
 on:
   push:
     branches: [ main, master ]
+    paths:
+      - 'maven-examples/maven-example/**'
+      - '.github/workflows/maven-example-build.yml'
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'maven-examples/maven-example/**'
+      - '.github/workflows/maven-example-build.yml'
 
 permissions:
   contents: read
@@ -13,6 +19,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: maven-examples/maven-example
     
     steps:
     - name: Checkout code
@@ -43,7 +53,7 @@ jobs:
       with:
         name: maven-artifacts
         path: |
-          **/target/*.jar
-          **/target/*.war
+          maven-examples/maven-example/**/target/*.jar
+          maven-examples/maven-example/**/target/*.war
         retention-days: 30
 
