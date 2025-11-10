@@ -5,7 +5,12 @@
     "start": "node helloworld"
   },
   "dependencies": {
-    "send": "^0.16.2"
+    "send": "^0.16.2",
+    "express": "^4.18.2",
+    "lodash": "^4.17.21",
+    "axios": "^1.5.0",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "debug": "^4.1.1"
