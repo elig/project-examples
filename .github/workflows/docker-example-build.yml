@@ -1,0 +1,97 @@
+name: Docker Example Build with JFrog Fly
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'docker-oci-examples/docker-example/**'
+      - '.github/workflows/docker-example-build.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'docker-oci-examples/docker-example/**'
+      - '.github/workflows/docker-example-build.yml'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag/version (e.g., 1.0.0, 2.1.3). Leave empty for "latest" tag'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: docker-oci-examples/docker-example
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup JFrog Fly
+      uses: jfrog/fly-action@v1
+      with:
+        url: https://jfmarketing.jfrog.io
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Set Image Tag
+      id: set_tag
+      run: |
+        if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+          echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
+        else
+          echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+        fi
+        echo "Using image tag: ${IMAGE_TAG}"
+
+    - name: Build Docker Image
+      run: |
+        export DOCKER_IMAGE_NAME=jfmarketing.jfrog.io/docker-local/hello-frog:${{ env.IMAGE_TAG }}
+        echo "Building Docker image: ${DOCKER_IMAGE_NAME}"
+        docker build -t ${DOCKER_IMAGE_NAME} .
+        echo "DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}" >> $GITHUB_ENV
+
+    - name: Push Docker Image to JFrog Fly
+      run: |
+        echo "Pushing Docker image: ${DOCKER_IMAGE_NAME}"
+        docker push ${DOCKER_IMAGE_NAME}
+
+    - name: Create GitHub Release
+      if: ${{ github.event.inputs.image_tag != '' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: docker-v${{ github.event.inputs.image_tag }}
+        release_name: Docker Example Release ${{ github.event.inputs.image_tag }}
+        body: |
+          ## Docker Example Release ${{ github.event.inputs.image_tag }}
+
+          **Docker Image deployed to JFrog Fly:**
+          - Repository: docker-local
+          - Image: hello-frog:${{ github.event.inputs.image_tag }}
+          - Full path: jfmarketing.jfrog.io/docker-local/hello-frog:${{ github.event.inputs.image_tag }}
+
+          **Build Information:**
+          - Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          - Commit: ${{ github.sha }}
+        draft: false
+        prerelease: false
+
+    - name: Image Summary
+      run: |
+        echo "### Docker Image Built Successfully! 🐳" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Image:** \`${DOCKER_IMAGE_NAME}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Registry:** jfmarketing.jfrog.io" >> $GITHUB_STEP_SUMMARY
+        echo "**Repository:** docker-local" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+
