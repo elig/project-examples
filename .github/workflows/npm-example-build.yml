@@ -44,7 +44,6 @@ jobs:
       uses: jfrog/fly-action@v1
       with:
         url: https://jfmarketing.jfrog.io
-        token: ${{ secrets.FLY_SECRET }}
         
     - name: Set Release Version
       if: ${{ github.event.inputs.release_version != '' }}
