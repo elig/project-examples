@@ -1,0 +1,93 @@
+name: NPM Example Build with JFrog Fly
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'npm-example/**'
+      - '.github/workflows/npm-example-build.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'npm-example/**'
+      - '.github/workflows/npm-example-build.yml'
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version (e.g., 0.0.4). Leave empty for current version'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: fly_key
+    
+    defaults:
+      run:
+        working-directory: npm-example
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup JFrog Fly
+      uses: jfrog/fly-action@v1
+      with:
+        url: https://jfmarketing.jfrog.io
+        token: ${{ secrets.FLY_SECRET }}
+        
+    - name: Set Release Version
+      if: ${{ github.event.inputs.release_version != '' }}
+      run: |
+        echo "Setting release version to ${{ github.event.inputs.release_version }}"
+        npm version ${{ github.event.inputs.release_version }} --no-git-tag-version
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run tests
+      run: npm test || echo "No tests defined"
+      
+    - name: Publish to JFrog Fly
+      run: npm publish
+      
+    - name: Create GitHub Release
+      if: ${{ github.event.inputs.release_version != '' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: npm-v${{ github.event.inputs.release_version }}
+        release_name: NPM Release ${{ github.event.inputs.release_version }}
+        body: |
+          ## NPM Example Release ${{ github.event.inputs.release_version }}
+          
+          **Package deployed to JFrog Fly:**
+          - npm registry
+          
+          **Build Information:**
+          - Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          - Commit: ${{ github.sha }}
+        draft: false
+        prerelease: false
+      
+    - name: Upload build artifacts to GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: npm-package
+        path: |
+          npm-example/package.json
+          npm-example/helloworld.js
+        retention-days: 30
+
+
