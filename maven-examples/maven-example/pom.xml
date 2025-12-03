@@ -33,12 +33,12 @@
         <repository>
             <id>fly-releases</id>
             <name>JFrog Fly Releases</name>
-            <url>https://jfmarketing.jfrog.io/artifactory/maven-local</url>
+            <url>https://websitedev.jfrog.io/artifactory/maven-local</url>
         </repository>
         <snapshotRepository>
             <id>fly-snapshots</id>
             <name>JFrog Fly Snapshots</name>
-            <url>https://jfmarketing.jfrog.io/artifactory/maven-local</url>
+            <url>https://websitedev.jfrog.io/artifactory/maven-local</url>
         </snapshotRepository>
     </distributionManagement>
 

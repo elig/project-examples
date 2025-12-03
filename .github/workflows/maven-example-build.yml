@@ -25,7 +25,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: fly_key
     
     defaults:
       run:
@@ -44,7 +43,7 @@ jobs:
     - name: Setup JFrog Fly
       uses: jfrog/fly-action@v1
       with:
-        url: https://jfmarketing.jfrog.io
+        url: https://websitedev.jfrog.io
         
     - name: Set Release Version
       if: ${{ github.event.inputs.release_version != '' }}
@@ -86,4 +85,3 @@ jobs:
           maven-examples/maven-example/**/target/*.jar
           maven-examples/maven-example/**/target/*.war
         retention-days: 30
-

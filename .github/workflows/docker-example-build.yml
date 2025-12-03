@@ -37,7 +37,7 @@ jobs:
     - name: Setup JFrog Fly
       uses: jfrog/fly-action@v1
       with:
-        url: https://jfmarketing.jfrog.io
+        url: https://websitedev.jfrog.io
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -54,7 +54,7 @@ jobs:
 
     - name: Build Docker Image
       run: |
-        export DOCKER_IMAGE_NAME=jfmarketing.jfrog.io/docker-local/hello-frog:${{ env.IMAGE_TAG }}
+        export DOCKER_IMAGE_NAME=websitedev.jfrog.io/docker-local/hello-frog:${{ env.IMAGE_TAG }}
         echo "Building Docker image: ${DOCKER_IMAGE_NAME}"
         docker build -t ${DOCKER_IMAGE_NAME} .
         echo "DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME}" >> $GITHUB_ENV
@@ -78,7 +78,7 @@ jobs:
           **Docker Image deployed to JFrog Fly:**
           - Repository: docker-local
           - Image: hello-frog:${{ github.event.inputs.image_tag }}
-          - Full path: jfmarketing.jfrog.io/docker-local/hello-frog:${{ github.event.inputs.image_tag }}
+          - Full path: websitedev.jfrog.io/docker-local/hello-frog:${{ github.event.inputs.image_tag }}
 
           **Build Information:**
           - Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -91,7 +91,6 @@ jobs:
         echo "### Docker Image Built Successfully! 🐳" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Image:** \`${DOCKER_IMAGE_NAME}\`" >> $GITHUB_STEP_SUMMARY
-        echo "**Registry:** jfmarketing.jfrog.io" >> $GITHUB_STEP_SUMMARY
+        echo "**Registry:** websitedev.jfrog.io" >> $GITHUB_STEP_SUMMARY
         echo "**Repository:** docker-local" >> $GITHUB_STEP_SUMMARY
         echo "**Tag:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
-
